@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <TM1638.h>
-#include <webtimer.h>
-WebTimer web(80);
+// #include <webtimer.h>
+// WebTimer web(80);
 
 #define DIO 13
 #define CLK 18
@@ -50,30 +50,12 @@ void setup() {
     module.setDisplayToString("GYMKHANA", 0, 0, FONT_DEFAULT);
     delay(1000);
 
-    web.begin("GymkhanaTim", "12345678");
-    web.setButtonCallback([](){
-        // обработка виртуальной кнопки старт/стоп
-         if (timerState == WAIT) {
-    // Старт таймера
-            timerState = RUN;
-            myTimerStart = micros();
-            ignoreUntil = millis() + 1000; // игнорировать вход 1 сек
-            module.setLEDs(0x00);
-        } else if (timerState == RUN) {
-            // Принудительная остановка таймера
-            timerState = STOP;
-            myTimerStop = micros();
-            lastTime = (myTimerStop - myTimerStart) / 1000000.0;
-            web.addLog(lastTime);
-        } else if (timerState == STOP || timerState == SHOW) {
-            // Сброс к ожиданию
-            timerState = WAIT;
-            lastTime = 0.0;
-        }
-    });
+    //web.begin("GymkhanaTim", "12345678");
+    
+    };
 
 
-}
+
 
 void loop() {
     static bool sensorPrev = HIGH;
@@ -82,7 +64,7 @@ void loop() {
     switch (timerState) {
         case WAIT:
             displayAllZerosBlink();
-            web.update(0.0, false); // Веб: ожидание, таймер не идёт
+          //  web.update(0.0, false); // Веб: ожидание, таймер не идёт
             if (keys) { // сброс результата по кнопке
                 lastTime = 0.0;
             }
@@ -97,7 +79,7 @@ void loop() {
         case RUN: {
             float t = (micros() - myTimerStart) / 1000000.0;
             displayTime(t);
-            web.update(t, true); // Веб: таймер идёт
+           // web.update(t, true); // Веб: таймер идёт
             // Игнорируем любые изменения на SENSOR_PIN первую секунду
             if (millis() < ignoreUntil) break;
             // Ждём устойчивого высокого уровня
@@ -111,8 +93,8 @@ void loop() {
 
         case STOP:
             displayTime(lastTime);
-            web.update(lastTime, false); // Веб: таймер остановлен
-            web.addLog(lastTime);
+           // web.update(lastTime, false); // Веб: таймер остановлен
+           // web.addLog(lastTime);
             module.setLEDs(0xFF);
             // Ожидаем появления низкого уровня (готовность к новому старту)
             if (digitalRead(SENSOR_PIN) == LOW) {
@@ -122,7 +104,7 @@ void loop() {
 
         case SHOW:
             displayTime(lastTime);
-            web.update(lastTime, false); // Веб: показ результата
+           // web.update(lastTime, false); // Веб: показ результата
             // Ожидаем нажатия кнопки для сброса
             if (keys) {
                 timerState = WAIT;
